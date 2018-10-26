@@ -134,6 +134,8 @@ endef
 include lib/Rules.mk
 include common/Rules.mk
 include unreplicated/Rules.mk
+include vr/Rules.mk
+include fastpaxos/Rules.mk
 include nopaxos/Rules.mk
 include bench/Rules.mk
 include store/Rules.mk
