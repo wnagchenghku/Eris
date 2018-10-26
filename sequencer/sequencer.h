@@ -45,8 +45,6 @@
 #include <linux/filter.h>
 #include <linux/if_ether.h>
 
-#include <unordered_map>
-
 namespace sequencer {
 
 class Sequencer {
@@ -58,7 +56,7 @@ public:
     uint64_t GetSequencerID() { return this->sequencer_id; };
 
 private:
-    std::unordered_map<uint32_t, uint64_t> counters;
+    uint64_t counters;
     uint64_t sequencer_id;
 };
 

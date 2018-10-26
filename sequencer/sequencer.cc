@@ -42,12 +42,8 @@ Sequencer::Sequencer(uint64_t sequencer_id) : sequencer_id(sequencer_id) { }
 Sequencer::~Sequencer() { }
 
 uint64_t
-Sequencer::Increment(uint32_t groupIdx) {
-    if (this->counters.find(groupIdx) == this->counters.end()) {
-        this->counters.insert(make_pair(groupIdx, 0));
-    }
-
-    return ++this->counters[groupIdx];
+Sequencer::Increment() {
+    return ++this->counters;
 }
 
 Configuration::Configuration(ifstream &file) {
@@ -226,9 +222,10 @@ Transport::ProcessPacket(uint8_t *packet, size_t len)
     /* Network ordered packet header format:
      * FRAG_MAGIC(32) | header data len (32) | original udp src (16) |
      * session ID (64) | number of groups (32) |
-     * group1 ID (32) | group1 sequence number (64) |
-     * group2 ID (32) | group2 sequence number (64) |
+     * group1 ID (32) |
+     * group2 ID (32) |
      * ...
+     * sequence number (64)
      */
 
     if (*(uint32_t *)datagram != NONFRAG_MAGIC) {
@@ -248,23 +245,11 @@ Transport::ProcessPacket(uint8_t *packet, size_t len)
     ngroups = *(uint32_t *)datagram;
 
     datagram += sizeof(uint32_t); // now points to group1 ID
-    group_bitmap = 0;
-    host_bitmap = 0;
-    for (int i = 0; i < ngroups; i++) {
-        uint32_t groupid = *(uint32_t *)datagram;
-        datagram += sizeof(uint32_t);
-        *(uint64_t *)datagram = this->sequencer->Increment(groupid);
-        datagram += sizeof(uint64_t);
-        group_bitmap |= (1 << groupid);
-        host_bitmap |= (1 << (groupid/NGROUP_PER_HOST));
-    }
 
-    /* Update udp header src field with the group bitmap.
-     * Switches use this bitmap to perform group cast.
-     */
-    udph->source = htons(group_bitmap);
-    udph->dest = htons(host_bitmap);
-    udph->check = 0; // disable udp checksum
+    datagram += sizeof(uint32_t) * ngroups;
+
+    *(uint64_t *)datagram = this->sequencer->Increment();
+
     return true;
 }
 
