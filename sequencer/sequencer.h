@@ -52,7 +52,7 @@ public:
     Sequencer(uint64_t sequencer_id);
     ~Sequencer();
 
-    uint64_t Increment(uint32_t groupIdx);
+    uint64_t Increment();
     uint64_t GetSequencerID() { return this->sequencer_id; };
 
 private:
